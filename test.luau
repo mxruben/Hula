@@ -31,8 +31,14 @@ grid:mutatePairs(function(i, v)
     end
     ]]
 end)
-
+print("Original grid:\n--------------------")
+grid:set(1, 1, 1, '# ')
 printGrid3D(grid)
+
+local region = grid:getRegion(1, 1, 1, 5, 5, 2)
+print("\nRegion:\n--------------------")
+printGrid3D(region)
+
 --[[
 function printGrid(g)
     local str = ""
