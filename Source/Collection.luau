@@ -68,16 +68,19 @@ function Collection.Grid3D:isCoordinateInBounds(x: number, y: number, z: number)
 end
 
 function Collection.Grid3D:get(x: number, y: number, z: number)
-	if not self:isCoordinateInBounds(x, y, z) then return nil end
-	return self._data[x + (self.height - 1) * (y + (self.width - 1) * z)]
+	return self._data[x + self.height * ((y - 1) + self.width * (z - 1))]
 end
 
 function Collection.Grid3D:set(x: number, y: number, z: number, value)
 	if not self:isCoordinateInBounds(x, y, z) then return end
-	self._data[x + (self.height - 1) * (y + (self.width - 1) * z)] = value
-	--self._data[x * (self.height - 1) * (self.depth - 1) + y * (self.depth - 1) + z] = value
+	self._data[x + self.height * ((y - 1) + self.width * (z - 1))] = value
 end
 
+function Collection.Grid3D:setUnchecked(x: number, y: number, z: number, value)
+	self._data[x + self.height * ((y - 1) + self.width * (z - 1))] = value
+end
+
+-- Returns values of surrounding grid cells
 function Collection.Grid3D:getNeighbors(x: number, y: number, z: number)
 	local neighbors = {}
 	neighbors["Top"] = self:get(x, y + 1, z)
@@ -98,14 +101,29 @@ function Collection.Grid3D:getRegion(x: number, y: number, z: number, width: num
 	local regionPos = 1
 	for z = z, z + depth - 1 do
 		for y = y, y + height - 1 do
-			local row = x + (self.height - 1) * (y + (self.width - 1) * z)
-			for x = x, x + width - 1 do
+			local row = x + self.height * ((y - 1) + self.width * (z - 1))
+			for x = 0, width - 1 do
 				region._data[regionPos] = self._data[row + x]
 				regionPos = regionPos + 1
 			end
 		end
 	end
 	return region
+end
+
+function Collection.Grid3D:mutateRegion(x: number, y: number, z: number, width: number, height: number, depth: number, mutator: (x: number, y: number, z: number, value: any) -> (any))
+	-- Bounds check
+	if not self:isCoordinateInBounds(x, y, z) 
+	or not self:isCoordinateInBounds(x + width, y + height, z + depth)
+	then return end
+	for z = z, z + depth - 1 do
+		for y = y, y + height - 1 do
+			local row = x + self.height * ((y - 1) + self.width * (z - 1))
+			for x = 0, width - 1 do
+				self._data[row + x] = mutator(x, y, z, self._data[row + x])
+			end
+		end
+	end
 end
 
 -- Statically-sized 2D grid
@@ -123,18 +141,21 @@ function Collection.Grid2D:isCoordinateInBounds(x: number, y: number)
 end
 
 function Collection.Grid2D:get(x: number, y: number)
-	if not self:isCoordinateInBounds(x, y) then return nil end
-	return self._data[x + y * (self.width - 1)]
+	return self._data[x + (y - 1) * self.width]
 end
 
 function Collection.Grid2D:set(x: number, y: number, value)
 	if not self:isCoordinateInBounds(x, y) then return end
-	self._data[x + y * (self.width - 1)] = value
+	self._data[x + (y - 1) * self.width] = value
 end
 
+function Collection.Grid2D:setUnchecked(x: number, y: number, value)
+	self._data[x + (y - 1) * self.width] = value
+end
+
+-- Returns values of surrounding grid cells
 function Collection.Grid2D:getNeighbors(x: number, y: number)
 	local neighbors = {}
-	-- TODO, optimize with only 2 coordinate bounds checks
 	neighbors["Top"] = self:get(x, y + 1)
 	neighbors["Bottom"] = self:get(x, y - 1)
 	neighbors["Left"] = self:get(x - 1, y)
