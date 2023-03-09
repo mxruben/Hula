@@ -26,22 +26,23 @@ local function printGrid3D(g)
 end
 
 local function testGrid3D()
-    local grid = Collection.Grid3D(8, 8, 4)
+    local grid = Collection.Grid3D(8, 8, 2)
 
     grid:mutatePairs(function(i, v)
         return tostring(i)..' '
     end)
     print("Original grid:\n--------------------")
+    grid:set(1, 1, 1, "# ")
     printGrid3D(grid)
 
     local region = grid:getRegion(3, 3, 1, 3, 4, 2)
     print("Region:\n--------------------")
     printGrid3D(region)
 
-    grid:mutateRegion(2, 2, 1, 3, 4, 2, function(x, y, z, value)
+    grid:mutateRegion(2, 2, 1, 4, 4, 1, function(x, y, z, value)
         return '# '
     end)
-    print("\nMutate region from (2, 2, 1) through (4, 5, 2):\n--------------------")
+    print("\nMutate region:\n--------------------")
     printGrid3D(grid)
 
     print("\nNeighbors at (2, 2, 2):\n--------------------")

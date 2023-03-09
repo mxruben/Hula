@@ -96,7 +96,7 @@ end
 function Collection.Grid3D:getRegion(x: number, y: number, z: number, width: number, height: number, depth: number)
 	-- Bounds check
 	if not self:isCoordinateInBounds(x, y, z) 
-	or not self:isCoordinateInBounds(x + width, y + height, z + depth)
+	or not self:isCoordinateInBounds(x + width - 1, y + height - 1, z + depth - 1)
 	then return end
 	local region = Collection.Grid3D(width, height, depth)
 	local regionPos = 1
@@ -115,7 +115,7 @@ end
 function Collection.Grid3D:mutateRegion(x: number, y: number, z: number, width: number, height: number, depth: number, mutator: (x: number, y: number, z: number, value: any) -> (any))
 	-- Bounds check
 	if not self:isCoordinateInBounds(x, y, z) 
-	or not self:isCoordinateInBounds(x + width, y + height, z + depth)
+	or not self:isCoordinateInBounds(x + width - 1, y + height - 1, z + depth - 1)
 	then return end
 	for z = z, z + depth - 1 do
 		for y = y, y + height - 1 do
