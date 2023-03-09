@@ -68,6 +68,7 @@ function Collection.Grid3D:isCoordinateInBounds(x: number, y: number, z: number)
 end
 
 function Collection.Grid3D:get(x: number, y: number, z: number)
+	if not self:isCoordinateInBounds(x, y, z) then return nil end
 	return self._data[x + self.height * ((y - 1) + self.width * (z - 1))]
 end
 
@@ -141,6 +142,7 @@ function Collection.Grid2D:isCoordinateInBounds(x: number, y: number)
 end
 
 function Collection.Grid2D:get(x: number, y: number)
+	if not self:isCoordinateInBounds(x, y) then return nil end
 	return self._data[x + (y - 1) * self.width]
 end
 
