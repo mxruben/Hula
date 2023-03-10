@@ -69,16 +69,16 @@ end
 
 function Collection.Grid3D:get(x: number, y: number, z: number)
 	if not self:isCoordinateInBounds(x, y, z) then return nil end
-	return self._data[x + self.height * ((y - 1) + self.width * (z - 1))]
+	return self._data[x + self.width * ((y - 1) + self.height * (z - 1))]
 end
 
 function Collection.Grid3D:set(x: number, y: number, z: number, value)
 	if not self:isCoordinateInBounds(x, y, z) then return end
-	self._data[x + self.height * ((y - 1) + self.width * (z - 1))] = value
+	self._data[x + self.width * ((y - 1) + self.height * (z - 1))] = value
 end
 
 function Collection.Grid3D:setUnchecked(x: number, y: number, z: number, value)
-	self._data[x + self.height * ((y - 1) + self.width * (z - 1))] = value
+	self._data[x + self.width * ((y - 1) + self.height * (z - 1))] = value
 end
 
 -- Returns values of surrounding grid cells
