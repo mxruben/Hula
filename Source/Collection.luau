@@ -105,7 +105,7 @@ function Collection.Grid3D:getRegion(x: number, y: number, z: number, width: num
 			local row = x + self.width * ((y - 1) + self.height * (z - 1))
 			for offset = 0, width - 1 do
 				region._data[regionPos] = self._data[row + offset]
-				regionPos = regionPos + 1
+				regionPos += 1
 			end
 		end
 	end
@@ -165,7 +165,6 @@ function Collection.Grid2D:getNeighbors(x: number, y: number)
 	return neighbors
 end
 
--- CLEANUP
 -- Returns a grid of the values in the specified region if in bounds
 function Collection.Grid2D:getRegion(x: number, y: number, width: number, height: number)
 	-- Bounds check. Subtract 1 from width/height to get end position
@@ -174,11 +173,11 @@ function Collection.Grid2D:getRegion(x: number, y: number, width: number, height
 	then return nil end
 	local region = Collection.Grid2D(width, height)
 	local regionPos = 1
-	for row = y, y + height - 1 do
-		local rowPos = x + self.width * (row - 1)
-		for pos = rowPos, rowPos + width - 1 do
-			region._data[regionPos] = self._data[pos]
-			regionPos = regionPos + 1
+	for y = y, y + height - 1 do
+		local row = x + self.width * (y - 1)
+		for offset = 0, width - 1 do
+			region._data[regionPos] = self._data[row + offset]
+			regionPos += 1
 		end
 	end
 	return region
@@ -189,12 +188,10 @@ function Collection.Grid2D:mutateRegion(x: number, y: number, width: number, hei
 	if not self:isCoordinateInBounds(x, y)
 	or not self:isCoordinateInBounds(x + width - 1, y + height - 1)
 	then return end
-	for row = y, y + height - 1 do
-		local rowPos = x + self.width * (row - 1)
-		local column = x
-		for pos = rowPos, rowPos + width - 1 do
-			self._data[pos] = mutator(column, row, self._data[pos])
-			column = column + 1
+	for y = y, y + height - 1 do
+		local row = x + self.width * (y - 1)
+		for offset = 0, width - 1 do
+			self._data[row + offset] = mutator(x + offset, y, self._data[row + offset])
 		end
 	end
 end
