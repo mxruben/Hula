@@ -3,6 +3,8 @@ local Memory = require("Source/Memory")
 
 local Collection = {}
 
+-- Fills a collection with copies of a given value. Use this with statically-sized collections.
+-- Requires _data and size
 local Fill = {
 	-- Fills the collection with a given value
 	fill = function(self, value)
@@ -12,6 +14,8 @@ local Fill = {
 	end,
 }
 
+-- Iterates over elements in a collection sets to the mutator's return value.
+-- Requires _data and size
 local Mutator = {
 	-- Iterates over value only
 	mutate = function(self, mutator: (value: any) -> (any))
@@ -28,27 +32,11 @@ local Mutator = {
 	end,
 }
 
+-- Iterates over elements
+-- Requires _data
 local Iterator = {
-	iterate = function(self): () -> (any)
-		local i = 0
-		local n = self.size
-		local t = self._data
-		
-		return function()
-			i = i + 1
-			if i <= n then return t[i] end
-		end
-	end,
-
-	iteratePairs = function(self): () -> (number, any)
-		local i = 0
-		local n = self.size
-		local t = self._data
-
-		return function()
-			i = i + 1
-			if i <= n then return i, t[i] end
-		end
+	__iter = function(self)
+		return next, self._data
 	end
 }
 
@@ -194,6 +182,38 @@ function Collection.Grid2D:mutateRegion(x: number, y: number, width: number, hei
 			self._data[row + offset] = mutator(x + offset, y, self._data[row + offset])
 		end
 	end
+end
+
+Collection.WeightedArray = class("WeightedArray"):with(Iterator)
+
+function Collection.WeightedArray:init()
+	self._data = {}
+	self._totalWeight = 0
+	self.size = 0
+end
+
+function Collection.WeightedArray:insert(element: {value: any, weight: number})
+	self._totalWeight += element.weight
+	self.size += 1
+	self._data[self.size] = element
+end
+
+function Collection.WeightedArray:remove(index: number)
+	self._totalWeight -= self._data[index].weight
+	self.size -= 1
+	table.remove(self._data, index)
+end
+
+function Collection.WeightedArray:random(): any
+	local target = math.random(0, self._totalWeight)
+	local weight = 0
+	for _, element in ipairs(self._data) do
+		weight += element.weight
+		if weight >= target then
+			return element.value
+		end
+	end
+	return
 end
 
 return Collection

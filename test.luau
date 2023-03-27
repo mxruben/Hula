@@ -8,11 +8,10 @@ local function printNeighbors(t)
     end
 end
 
-
 local function printGrid3D(g)
     local str = ""
     local line = ""
-    for i, v in g:iteratePairs() do
+    for i, v in g do
         line = line..v
         if i % g.width == 0 then
             str = '\n'..line..str
@@ -50,7 +49,7 @@ end
 local function printGrid2D(g)
     local str = ""
     local line = ""
-    for i, v in g:iteratePairs() do
+    for i, v in g do
         line = line..v
         if i % g.width == 0 then
             str = '\n'..line..str
@@ -87,42 +86,8 @@ local function testGrid2D()
         end
     end)
 
-    print("\nMutate region from (2, 2) through (11, 11):\n--------------------")
+    print("\nMutate region:\n--------------------")
     printGrid2D(grid)
-end
-
-local function trigGrid(w, h)
-    local grid = Collection.Grid2D(w, h)
-    grid:mutatePairs(function(i, v)
-        --math.abs(math.tan(i) / i) < 0.001
-        --math.abs(math.sin(i)) < 0.5
-        if math.abs(math.tan(i) / i) < 0.001 then
-            return "# "
-        else
-            return ". "
-        end
-    end)
-
-    return grid
-end
-
-local function noiseGrid(w, h)
-    local grid = Collection.Grid2D(w, h)
-
-    math.randomseed(os.time())
-    local seed = math.floor(math.random() * 1000000000)
-    --local seed = 35137452834
-
-    grid:mutatePairs(function(i, v)
-        local noise = math.noise(i, math.pi / 10, seed)
-        if noise > 0 then
-            return "# "
-        else
-            return ". "
-        end
-    end)
-
-    return grid
 end
 
 local function randomGrid(w, h)
@@ -214,6 +179,6 @@ local function testDither()
     printGrid2D(world)
 end
 
-testGrid2D()
+--testGrid2D()
 --testGrid3D()
 --testDither()
