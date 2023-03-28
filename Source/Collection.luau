@@ -1,7 +1,9 @@
 local class = require("Lib/30log")
 local Memory = require("Source/Memory")
 
-local Collection = {}
+------------
+-- MIXINS --
+------------
 
 -- Fills a collection with copies of a given value. Use this with statically-sized collections.
 -- Requires _data and size
@@ -40,6 +42,12 @@ local Iterator = {
 	end
 }
 
+-----------------
+-- COLLECTIONS --
+-----------------
+
+local Collection = {}
+
 -- Statically-sized 3D grid
 Collection.Grid3D = class("Grid3D"):with(Fill):with(Mutator):with(Iterator)
 
@@ -67,6 +75,28 @@ end
 
 function Collection.Grid3D:setUnchecked(x: number, y: number, z: number, value)
 	self._data[x + self.width * ((y - 1) + self.height * (z - 1))] = value
+end
+
+function Collection.Grid3D:__iter()
+	local x, y, z, i = 0, 1, 1, 0
+	return function()
+		i += 1
+		if x < self.width then
+			x += 1
+		else
+			x = 1
+			if y < self.height then
+				y += 1
+			else
+				y = 1
+				z += 1
+				if z > self.depth then
+					return
+				end
+			end
+		end
+		return x, y, z, self._data[i]
+	end
 end
 
 -- Returns values of surrounding grid cells
@@ -116,7 +146,7 @@ function Collection.Grid3D:mutateRegion(x: number, y: number, z: number, width: 
 end
 
 -- Statically-sized 2D grid
-Collection.Grid2D = class("Grid2D"):with(Fill):with(Mutator):with(Iterator)
+Collection.Grid2D = class("Grid2D"):with(Fill):with(Mutator)
 
 function Collection.Grid2D:init(width: number, height: number)
 	self.width = width
@@ -141,6 +171,23 @@ end
 
 function Collection.Grid2D:setUnchecked(x: number, y: number, value)
 	self._data[x + (y - 1) * self.width] = value
+end
+
+function Collection.Grid2D:__iter()
+	local x, y, i = 0, 1, 0
+	return function()
+		i += 1
+		if x < self.width then
+			x += 1
+		else
+			x = 1
+			y += 1
+			if y > self.height then
+				return
+			end
+		end
+		return x, y, self._data[i]
+	end
 end
 
 -- Returns values of surrounding grid cells
@@ -184,6 +231,8 @@ function Collection.Grid2D:mutateRegion(x: number, y: number, width: number, hei
 	end
 end
 
+-- Possible optimization, use binary search for random function by storing cumulative weights in each element.
+-- Drawbacks, would have to recalculate cumulative weights each time an element is added or removed.
 Collection.WeightedArray = class("WeightedArray"):with(Iterator)
 
 function Collection.WeightedArray:init()
@@ -205,15 +254,14 @@ function Collection.WeightedArray:remove(index: number)
 end
 
 function Collection.WeightedArray:random(): any
-	local target = math.random(0, self._totalWeight)
-	local weight = 0
+	local target = math.random(0, self._totalWeight - 1)
 	for _, element in ipairs(self._data) do
-		weight += element.weight
-		if weight >= target then
+		if target < element.weight then
 			return element.value
 		end
+		target -= element.weight
 	end
-	return
+	return -- should never get here
 end
 
 return Collection

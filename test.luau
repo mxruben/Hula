@@ -11,12 +11,12 @@ end
 local function printGrid3D(g)
     local str = ""
     local line = ""
-    for i, v in g do
+    for x, y, z, v in g do
         line = line..v
-        if i % g.width == 0 then
+        if x == g.width then
             str = '\n'..line..str
             line = ""
-            if i % (g.width * g.height) == 0 then
+            if y == g.height then
                 str = '\n'..str
             end
         end
@@ -49,9 +49,9 @@ end
 local function printGrid2D(g)
     local str = ""
     local line = ""
-    for i, v in g do
+    for x, y, v in g do
         line = line..v
-        if i % g.width == 0 then
+        if x == g.width then
             str = '\n'..line..str
             line = ""
         end
@@ -179,6 +179,27 @@ local function testDither()
     printGrid2D(world)
 end
 
+local function testWeightedArray()
+    local arr = Collection.WeightedArray()
+    arr:insert({value = "banana", weight = 100})
+    arr:insert({value = "apple", weight = 50})
+    arr:insert({value = "orange", weight = 10})
+    local results = {banana = 0, apple = 0, orange = 0}
+    local output = ""
+    for _ = 1, 20 do
+        local result = arr:random()
+        results[result] += 1
+        output ..= result..", "
+    end
+    output = string.sub(output, 1, string.len(output) - 2)
+    print("WeightedArray:\n--------------------")
+    print(output)
+    print("Bananas: "..results.banana)
+    print("Apples: "..results.apple)
+    print("Oranges: "..results.orange)
+end
+
+testWeightedArray()
 --testGrid2D()
 --testGrid3D()
 --testDither()
