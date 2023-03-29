@@ -201,7 +201,11 @@ local function testWeightedArray()
     print(`Oranges: {results.orange}`)
 end
 
-testWeightedArray()
+for i in Range(1, 10) do
+    print(i)
+end
+
+--testWeightedArray()
 --testGrid2D()
 --testGrid3D()
 --testDither()

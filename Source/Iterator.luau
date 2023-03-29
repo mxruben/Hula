@@ -12,14 +12,26 @@ function Iterator.Range:init(i: number, j: number)
 end
 
 function Iterator.Range:__iter()
-    self.i -= 1
-    return function()
-        self.i += 1
-        if self.i > self.j then
-            return
+    if self.i < self.j then
+        self.i -= 1
+        return function()
+            self.i += 1
+            if self.i > self.j then
+                return
+            end
+            return self.i
         end
-        return self.i
+    else
+        self.i += 1
+        return function()
+            self.i -= 1
+            if self.i < self.j then
+                return
+            end
+            return self.i
+        end
     end
+    
 end
 
 return Iterator
