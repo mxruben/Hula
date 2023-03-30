@@ -1,6 +1,6 @@
 local Collection = require("Source/Collection")
 local Iterator = require("Source/Iterator")
-local Range = Iterator.Range
+local range = Iterator.range
 --local Memory = require("Memory")
 --local Thread = require("Thread")
 
@@ -188,7 +188,7 @@ local function testWeightedArray()
     arr:insert({value = "orange", weight = 10})
     local results = {banana = 0, apple = 0, orange = 0}
     local output = ""
-    for _ in Range(1, 10) do
+    for _ in range(1, 10) do
         local result = arr:random()
         results[result] += 1
         output ..= result..", "
@@ -201,7 +201,7 @@ local function testWeightedArray()
     print(`Oranges: {results.orange}`)
 end
 
-for i in Range(1, 10) do
+for i in range(10, 1) do
     print(i)
 end
 
