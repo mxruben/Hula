@@ -49,7 +49,7 @@ local Iterator = {
 local Collection = {}
 
 -- Statically-sized 3D grid
-Collection.Grid3D = class("Grid3D"):with(Fill):with(Mutator):with(Iterator)
+Collection.Grid3D = class("Grid3D"):with(Fill):with(Iterator)
 
 function Collection.Grid3D:init(width: number, height: number, depth: number)
 	self.width = width
