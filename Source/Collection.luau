@@ -49,7 +49,7 @@ local Iterator = {
 local Collection = {}
 
 -- Statically-sized 3D grid
-Collection.Grid3D = class("Grid3D"):with(Fill):with(Iterator)
+Collection.Grid3D = class("Grid3D"):with(Fill)
 
 function Collection.Grid3D:init(width: number, height: number, depth: number)
 	self.width = width
@@ -130,6 +130,17 @@ function Collection.Grid3D:getRegion(x: number, y: number, z: number, width: num
 	return region
 end
 
+function Collection.Grid3D:mutate(mutator: (x: number, y: number, z: number, value: any) -> (any))
+	for z = 1, self.depth do
+		for y = 1, self.height do
+			local row = self.width * ((y - 1) + self.height * (z - 1))
+			for x = 1, self.width do
+				self._data[row + x] = mutator(x, y, z, self._data[row + x])
+			end
+		end
+	end
+end
+
 function Collection.Grid3D:mutateRegion(x: number, y: number, z: number, width: number, height: number, depth: number, mutator: (x: number, y: number, z: number, value: any) -> (any))
 	-- Bounds check
 	if not self:isCoordinateInBounds(x, y, z) 
@@ -146,7 +157,7 @@ function Collection.Grid3D:mutateRegion(x: number, y: number, z: number, width: 
 end
 
 -- Statically-sized 2D grid
-Collection.Grid2D = class("Grid2D"):with(Fill):with(Mutator)
+Collection.Grid2D = class("Grid2D"):with(Fill)
 
 function Collection.Grid2D:init(width: number, height: number)
 	self.width = width
@@ -216,6 +227,15 @@ function Collection.Grid2D:getRegion(x: number, y: number, width: number, height
 		end
 	end
 	return region
+end
+
+function Collection.Grid2D:mutate(mutator: (x: number, y: number, value: any) -> (any))
+	for y = 1, self.height do
+		local row = self.width * (y - 1)
+		for x = 1, self.width do
+			self._data[row + x] = mutator(x, y, self._data[row + x])
+		end
+	end
 end
 
 function Collection.Grid2D:mutateRegion(x: number, y: number, width: number, height: number, mutator: (x: number, y: number, value: any) -> (any))
