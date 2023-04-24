@@ -284,4 +284,45 @@ function Collection.WeightedArray:random(): any
 	return -- should never get here
 end
 
+-- First in first out container
+Collection.Queue = class("Queue", {
+	_data = {},
+	first = 0,
+	last = -1
+})
+
+function Collection.Queue:push(value: any): ()
+	self.last += 1
+	self._data[self.last] = value
+end
+
+function Collection.Queue:pop(): any
+	local first = self.first
+	local value = self._data[first]
+	self._data[first] = nil
+	self.first += 1
+	return value
+end
+
+function Collection.Queue:isEmpty(): boolean
+	if self.first > self.last then
+		return true
+	else
+		return false
+	end
+end
+
+function Collection.Queue:__iter()
+	local i = self.first - 1
+	local n = self.last
+	return function()
+		i += 1
+		if i <= n then
+			return self:pop()
+		else
+			return nil
+		end
+	end
+end
+
 return Collection

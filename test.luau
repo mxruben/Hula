@@ -2,6 +2,8 @@ local Collection = require("Source/Collection")
 --local Memory = require("Memory")
 --local Thread = require("Thread")
 
+-- TODO: Add proper tests
+
 local function printNeighbors(t)
     for k, v in pairs(t) do
         print(k..": "..tostring(v))
@@ -90,95 +92,6 @@ local function testGrid2D()
     printGrid2D(grid)
 end
 
-local function randomGrid(w, h)
-    local grid = Collection.Grid2D(w, h)
-
-    math.randomseed(os.time())
-
-    grid:mutatePairs(function(i, v)
-        return math.random()
-    end)
-
-    return grid
-end
-
-local function testDither()
-    -- Create example world
-    local width = 60
-    local height = 60
-    local world = Collection.Grid2D(width, height)
-    local biome1 = {top = "~ ", mid = "X ", deep = "# "}
-    local biome2 = {top = "- ", mid = "W ", deep = "@ "}
-    world:fill("  ")
-    for x = 1, width do
-        -- Top material
-        if x > width / 2 then
-            world:set(x, height, biome2.top)
-        else
-            world:set(x, height, biome1.top)
-        end
-        for y = height - 1, 1, -1 do
-            if y > height - 6 then
-                -- Mid material
-                if x > width / 2 then
-                    world:set(x, y, biome2.mid)
-                else
-                    world:set(x, y, biome1.mid)
-                end
-            else
-                -- Deep material
-                if x > height / 2 then
-                    world:set(x, y, biome2.deep)
-                else
-                    world:set(x, y, biome1.deep)
-                end
-            end
-        end
-    end
-    --print("World:")
-    --printGrid2D(world)
-
-    -- Dither
-    local range = 15
-    local border = width / 2
-    local ditherMatrix = randomGrid(width, height)
-    local ditherVis = Collection.Grid2D(width, height)
-    ditherVis:fill(". ")
-    --print("Dither matrix:")
-    --printGrid2D(ditherMatrix)
-    world:mutateRegion(border - range, 1, range * 2, height, function(x, y, v)
-        if v == "  " then return v end
-        local distance = math.abs(border - x)
-        --local threshold = distance / range / 2 + 0.5
-        --local threshold = -0.25 * math.cos(distance / range * math.pi) + 0.75
-        local threshold = (distance / range + 0.1)^0.2
-        local b1
-        local b2
-        if x > border then
-            b1 = biome2
-            b2 = biome1
-        else
-            b1 = biome1
-            b2 = biome2
-        end
-        if ditherMatrix:get(x, y) >= threshold then
-            ditherVis:set(x, y, "# ")
-            if v == b1.top then
-                return b2.top
-            elseif v == b1.mid then
-                return b2.mid
-            elseif v == b1.deep then
-                return b2.deep
-            end
-        end
-        return v
-    end)
-    print("Points dithered:")
-    printGrid2D(ditherVis)
-    print("Dithered world:")
-    printGrid2D(world)
-end
-
 local function testWeightedArray()
     local arr = Collection.WeightedArray()
     arr:insert({value = "banana", weight = 100})
@@ -199,7 +112,24 @@ local function testWeightedArray()
     print(`Oranges: {results.orange}`)
 end
 
+local function testQueue()
+    local q = Collection.Queue()
+    assert(q:isEmpty(), "Queue isEmpty() failed")
+    q:push(1)
+    assert(not q:isEmpty(), "Queue isEmpty() failed")
+    q:push(2)
+    q:push(3)
+    q:push(4)
+    q:push(5)
+    q:push(6)
+    print(q:pop())
+    for i in q do
+        print(i)
+    end
+    assert(q:isEmpty(), "Queue isEmpty() failed")
+end
+
+--testQueue()
 --testWeightedArray()
 --testGrid2D()
 --testGrid3D()
---testDither()
