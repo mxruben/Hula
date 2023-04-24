@@ -320,6 +320,9 @@ function Collection.Queue:__iter()
 		if i <= n then
 			return self:pop()
 		else
+			-- Queue is empty, reset it
+			self.first = 0
+			self.last = -1
 			return nil
 		end
 	end
