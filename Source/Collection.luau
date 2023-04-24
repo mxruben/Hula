@@ -312,6 +312,12 @@ function Collection.Queue:isEmpty(): boolean
 	end
 end
 
+function Collection.Queue:clear(): ()
+	self.first = 0
+	self.last = -1
+	self._data = {}
+end
+
 function Collection.Queue:__iter()
 	local i = self.first - 1
 	local n = self.last
