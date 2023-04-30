@@ -334,4 +334,40 @@ function Collection.Queue:__iter()
 	end
 end
 
+Collection.Stack = class("Stack", {
+	_data = {},
+	_top = 0
+})
+
+function Collection.Stack:push(value: any): ()
+	self._top += 1
+	self._data[self._top] = value
+end
+
+function Collection.Stack:pop(): any
+	if self._top <= 0 then error("Attempt to pop from empty stack") end
+	local value = self._data[self._top]
+	self._data[self._top] = nil
+	self._top -= 1
+	return value
+end
+
+function Collection.Stack:isEmpty(): boolean
+	return self._top <= 0
+end
+
+function Collection.Stack:__iter()
+	local i = self._top
+	return function()
+		i -= 1
+		if i >= 0 then
+			return self:pop()
+		else
+			-- Stack is empty
+			self._top = 0
+			return nil
+		end
+	end
+end
+
 return Collection

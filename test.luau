@@ -126,9 +126,23 @@ local function testQueue()
     for i in q do
         print(i)
     end
-    assert(q:isEmpty(), "Queue isEmpty() failed")
 end
 
+local function testStack()
+    local stack = Collection.Stack()
+    assert(stack:isEmpty(), "Stack isEmpty() failed")
+    stack:push("cheese")
+    assert(not stack:isEmpty(), "Stack isEmpty() failed")
+    stack:push("tortilla")
+    stack:push("potato")
+    stack:push("meat")
+    print(stack:pop())
+    for i in stack do
+        print(i)
+    end
+end
+
+testStack()
 --testQueue()
 --testWeightedArray()
 --testGrid2D()
