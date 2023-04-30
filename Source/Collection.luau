@@ -305,11 +305,7 @@ function Collection.Queue:pop(): any
 end
 
 function Collection.Queue:isEmpty(): boolean
-	if self.first > self.last then
-		return true
-	else
-		return false
-	end
+	return self.first > self.last
 end
 
 function Collection.Queue:clear(): ()
@@ -334,6 +330,104 @@ function Collection.Queue:__iter()
 	end
 end
 
+Collection.PriorityQueue = class("PriorityQueue", {
+	_heap_items = {},
+	_heap_priority = {},
+	size = 0
+})
+
+-- Check if the queue is empty
+function Collection.PriorityQueue:isEmpty(): boolean
+	return self.size == 0
+end
+
+-- Swim up on the tree and fix heap order
+function Collection.PriorityQueue:_swim(): ()
+	local heap_items = self._heap_items
+	local heap_priority = self._heap_priority
+	local i = self.size
+
+	while math.floor(i / 2) > 0 do
+		local half = math.floor(i / 2)
+		if heap_priority[i] < heap_priority[half] then
+			-- If node is less than it's parent, swap
+			heap_items[i], heap_items[half] = heap_items[half], heap_items[i]
+			heap_priority[i], heap_priority[half] = heap_priority[half], heap_priority[i]
+		end
+		i = half
+	end
+end
+
+-- Put an item with a specified priority into the queue
+function Collection.PriorityQueue:put(item: any, priority: number): ()
+	self.size += 1
+	self._heap_items[self.size] = item
+	self._heap_priority[self.size] = priority
+	self:_swim()
+end
+
+function Collection.PriorityQueue:_minChild(i: number): number
+	if (i * 2) + 1 > self.size then
+		-- No right child, must return left
+		return i * 2
+	elseif self._heap_priority[i * 2] < self._heap_priority[i * 2 + 1] then
+		-- Return left
+		return i * 2
+	else
+		-- Return right
+		return i * 2 + 1
+	end
+end
+
+-- Sink down on the tree and fix the heap order
+function Collection.PriorityQueue:_sink(): ()
+	local size = self.size
+	local heap_items = self._heap_items
+	local heap_priority = self._heap_priority
+	local i = 1
+
+	while (i * 2) <= size do
+		local mc = self:_minChild(i)
+		if heap_priority[i] > heap_priority[mc] then
+			-- If node is greater than its smallest child then swap
+			heap_items[i], heap_items[mc] = heap_items[mc], heap_items[i]
+			heap_priority[i], heap_priority[mc] = heap_priority[mc], heap_priority[i]
+		end
+		i = mc
+	end
+end
+
+-- Return and remove the top priority item
+function Collection.PriorityQueue:pop(): (any, number)
+	local heap_items = self._heap_items
+	local heap_priority = self._heap_priority
+	local item, priority = heap_items[1], heap_priority[1]
+	heap_items[1], heap_priority[1] = heap_items[self.size], heap_priority[self.size]
+	heap_items[self.size], heap_priority[self.size] = nil, nil
+	self.size -= 1
+	self:_sink()
+	return item, priority
+end
+
+-- Return top priority item without removing
+function Collection.PriorityQueue:peek(): (any, number)
+	return self._heap_items[1], self._heap_priority[1]
+end
+
+-- Pop each item with an iterator
+function Collection.PriorityQueue:__iter()
+	local i = 0
+	local n = self.size
+	return function()
+		i += 1
+		if i <= n then
+			return self:pop()
+		else
+			return nil
+		end
+	end
+end
+
 Collection.Stack = class("Stack", {
 	_data = {},
 	_top = 0
@@ -345,7 +439,7 @@ function Collection.Stack:push(value: any): ()
 end
 
 function Collection.Stack:pop(): any
-	if self._top <= 0 then error("Attempt to pop from empty stack") end
+	if self._top <= 0 then return nil end
 	local value = self._data[self._top]
 	self._data[self._top] = nil
 	self._top -= 1

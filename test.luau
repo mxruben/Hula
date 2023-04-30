@@ -142,7 +142,22 @@ local function testStack()
     end
 end
 
-testStack()
+local function testPriorityQueue()
+    local pq = Collection.PriorityQueue()
+
+    pq:put("durian", 5)
+    pq:put("lemon", 6)
+    pq:put("apple", 1)
+    pq:put("banana", 1)
+    pq:put("orange", 3)
+
+    for i, p in pq do
+        print(i, p)
+    end
+end
+
+testPriorityQueue()
+--testStack()
 --testQueue()
 --testWeightedArray()
 --testGrid2D()
