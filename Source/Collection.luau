@@ -464,4 +464,54 @@ function Collection.Stack:__iter()
 	end
 end
 
+-- Sorted array using the merge sort algorithim. Works with numbers and
+-- any class that implements relational metamethods
+Collection.SortedArray = class("SortedArray", {
+	_data = {},
+	size = 0
+}):with(Iterator)
+
+-- Sort array using merge sort algorithim
+function Collection.SortedArray:sort(first: number?, last: number?): ()
+	local first = first or 1
+	local last = last or self.size
+
+	if first < last then
+		local middle = math.floor((first + last) / 2)
+		self:sort(first, middle)
+		self:sort(middle + 1, last)
+
+		local left = first
+		local leftTail = math.floor((first + last) / 2)
+		local right = leftTail + 1
+		local temp = {unpack(self._data)}
+
+		for i = first, last do
+			if right > last or ((self._data[left] <= self._data[right]) and left <= leftTail) then
+				temp[i] = self._data[left]
+				left += 1
+			else
+				temp[i] = self._data[right]
+				right += 1
+			end
+		end
+
+		-- Copy sorted data back into array
+		for i = first, last do
+			self._data[i] = temp[i]
+		end
+	end
+end
+
+function Collection.SortedArray:insert(value: any): ()
+	self.size += 1
+	self._data[self.size] = value
+	self:sort()
+end
+
+function Collection.SortedArray:remove(index: number): ()
+	self.size -= 1
+	table.remove(self._data, index)
+end
+
 return Collection

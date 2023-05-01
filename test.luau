@@ -1,6 +1,7 @@
 local Collection = require("Source/Collection")
 --local Memory = require("Memory")
 --local Thread = require("Thread")
+local class = require("Lib/30log")
 
 -- TODO: Add proper tests
 
@@ -156,7 +157,48 @@ local function testPriorityQueue()
     end
 end
 
-testPriorityQueue()
+local function testSortedArray()
+    local sa = Collection.SortedArray()
+    sa:insert(3)
+    sa:insert(2)
+    sa:insert(5)
+    sa:insert(1)
+    sa:insert(7)
+
+    for i, v in sa do
+        print(i, v)
+    end
+    print()
+
+    local A = class("A")
+    function A:init(v: number)
+        self.value = v
+    end
+    function A.__eq(a, b)
+        return a.value == b.value
+    end
+    function A.__lt(a, b)
+        return a.value < b.value
+    end
+    function A.__le(a, b)
+        return a.value <= b.value
+    end
+
+    local sa2 = Collection.SortedArray()
+    sa2:insert(A(3))
+    sa2:insert(A(1))
+    sa2:insert(A(2))
+    sa2:insert(A(4))
+    sa2:insert(A(6))
+    sa2:insert(A(10))
+
+    for i, v in sa2 do
+        print(i, v.value)
+    end
+end
+
+testSortedArray()
+--testPriorityQueue()
 --testStack()
 --testQueue()
 --testWeightedArray()
