@@ -12,6 +12,7 @@ function Memory.copy(obj, seen)
 end
 
 -- Source: https://stackoverflow.com/a/1283608/18147378
+-- Merges two tables, overwriting duplicate keys
 function Memory.merge(t1, t2)
     for k,v in pairs(t2) do
         if type(v) == "table" then
