@@ -102,7 +102,7 @@ function Collection.Grid3D:getRegion(x: number, y: number, z: number, width: num
 	if not self:isCoordinateInBounds(x, y, z) 
 		or not self:isCoordinateInBounds(x + width - 1, y + height - 1, z + depth - 1)
 	then return end
-	local region = Collection.Grid3D(width, height, depth)
+	local region = Collection.Grid3D.new(width, height, depth)
 	local regionPos = 1
 	for z = z, z + depth - 1 do
 		for y = y, y + height - 1 do
@@ -212,7 +212,7 @@ function Collection.Grid2D:getRegion(x: number, y: number, width: number, height
 	if not self:isCoordinateInBounds(x, y)
 		or not self:isCoordinateInBounds(x + width - 1, y + height - 1) 
 	then return nil end
-	local region = Collection.Grid2D(width, height)
+	local region = Collection.Grid2D.new(width, height)
 	local regionPos = 1
 	for y = y, y + height - 1 do
 		local row = x + self.width * (y - 1)
