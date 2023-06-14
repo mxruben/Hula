@@ -1,7 +1,6 @@
 local Collection = require("Source/Collection")
 --local Memory = require("Memory")
 --local Thread = require("Thread")
-local class = require("Lib/30log")
 
 -- TODO: Add proper tests
 
@@ -28,7 +27,7 @@ local function printGrid3D(g)
 end
 
 local function testGrid3D()
-    local grid = Collection.Grid3D(8, 8, 2)
+    local grid = Collection.Grid3D.new(8, 8, 2)
 
     grid:mutatePairs(function(i, v)
         return tostring(i)..' '
@@ -63,7 +62,7 @@ local function printGrid2D(g)
 end
 
 local function testGrid2D()
-    local grid = Collection.Grid2D(16, 16)
+    local grid = Collection.Grid2D.new(16, 16)
     grid:mutatePairs(function(i, v)
         if math.sin(i) > 0.5 then
             return 'X'
@@ -94,7 +93,7 @@ local function testGrid2D()
 end
 
 local function testWeightedArray()
-    local arr = Collection.WeightedArray()
+    local arr = Collection.WeightedArray.new()
     arr:insert({value = "banana", weight = 100})
     arr:insert({value = "apple", weight = 50})
     arr:insert({value = "orange", weight = 10})
@@ -114,7 +113,7 @@ local function testWeightedArray()
 end
 
 local function testQueue()
-    local q = Collection.Queue()
+    local q = Collection.Queue.new()
     assert(q:isEmpty(), "Queue isEmpty() failed")
     q:push(1)
     assert(not q:isEmpty(), "Queue isEmpty() failed")
@@ -130,7 +129,7 @@ local function testQueue()
 end
 
 local function testStack()
-    local stack = Collection.Stack()
+    local stack = Collection.Stack.new()
     assert(stack:isEmpty(), "Stack isEmpty() failed")
     stack:push("cheese")
     assert(not stack:isEmpty(), "Stack isEmpty() failed")
@@ -144,7 +143,7 @@ local function testStack()
 end
 
 local function testPriorityQueue()
-    local pq = Collection.PriorityQueue()
+    local pq = Collection.PriorityQueue.new()
 
     pq:put("durian", 5)
     pq:put("lemon", 6)
@@ -158,49 +157,25 @@ local function testPriorityQueue()
 end
 
 local function testSortedArray()
-    local sa = Collection.SortedArray()
+    local sa = Collection.SortedArray.new()
     sa:insert(3)
     sa:insert(2)
     sa:insert(5)
     sa:insert(1)
     sa:insert(7)
+    sa:insert(-2)
 
     for i, v in sa do
         print(i, v)
     end
     print()
-
-    local A = class("A")
-    function A:init(v: number)
-        self.value = v
-    end
-    function A.__eq(a, b)
-        return a.value == b.value
-    end
-    function A.__lt(a, b)
-        return a.value < b.value
-    end
-    function A.__le(a, b)
-        return a.value <= b.value
-    end
-
-    local sa2 = Collection.SortedArray()
-    sa2:insert(A(3))
-    sa2:insert(A(1))
-    sa2:insert(A(2))
-    sa2:insert(A(4))
-    sa2:insert(A(6))
-    sa2:insert(A(10))
-
-    for i, v in sa2 do
-        print(i, v.value)
-    end
 end
 
 testSortedArray()
---testPriorityQueue()
---testStack()
---testQueue()
---testWeightedArray()
+testPriorityQueue()
+testStack()
+testQueue()
+testWeightedArray()
+-- TODO fix these tests
 --testGrid2D()
 --testGrid3D()

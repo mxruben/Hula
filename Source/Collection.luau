@@ -1,46 +1,23 @@
-local class = require("Lib/30log")
 local Memory = require("Source/Memory")
 
-------------
--- MIXINS --
-------------
+----------------------
+-- SHARED FUNCTIONS --
+----------------------
 
 -- Fills a collection with copies of a given value. Use this with statically-sized collections.
 -- Requires _data and size
-local Fill = {
-	-- Fills the collection with a given value
-	fill = function(self, value)
-		for x = 1, self.size do
-			self._data[x] = Memory.copy(value)
-		end
-	end,
-}
 
--- Iterates over elements in a collection sets to the mutator's return value.
--- Requires _data and size
-local Mutator = {
-	-- Iterates over value only
-	mutate = function(self, mutator: (value: any) -> (any))
-		for i = 1, self.size do
-			self._data[i] = mutator(self._data[i])
-		end
-	end,
-	
-	-- Iterates over index and value
-	mutatePairs = function(self, mutator: (index: number, value: any) -> (any))
-		for i = 1, self.size do
-			self._data[i] = mutator(i, self._data[i])
-		end
-	end,
-}
+local function fill(self, value)
+	for x = 1, self.size do
+		self._data[x] = Memory.copy(value)
+	end
+end
 
 -- Iterates over elements
 -- Requires _data
-local Iterator = {
-	__iter = function(self)
-		return next, self._data
-	end
-}
+local function iterator(self)
+	return next, self._data
+end
 
 -----------------
 -- COLLECTIONS --
@@ -49,14 +26,23 @@ local Iterator = {
 local Collection = {}
 
 -- Statically-sized 3D grid
-Collection.Grid3D = class("Grid3D"):with(Fill)
+Collection.Grid3D = {}
+Collection.Grid3D.__index = Collection.Grid3D
+Collection.Grid3D.fill = fill
 
-function Collection.Grid3D:init(width: number, height: number, depth: number)
-	self.width = width
-	self.height = height
-	self.depth = depth
-	self.size = width * height * depth
-	self._data = {}
+-- Constructor
+function Collection.Grid3D.new(width: number, height: number, depth: number)
+    local self = {
+        width = width,
+        height = height,
+        depth = depth,
+        size = width * height * depth,
+        _data = {}
+    }
+
+    setmetatable(self, Collection.Grid3D)
+
+    return self
 end
 
 function Collection.Grid3D:isCoordinateInBounds(x: number, y: number, z: number): boolean
@@ -114,7 +100,7 @@ end
 function Collection.Grid3D:getRegion(x: number, y: number, z: number, width: number, height: number, depth: number)
 	-- Bounds check
 	if not self:isCoordinateInBounds(x, y, z) 
-	or not self:isCoordinateInBounds(x + width - 1, y + height - 1, z + depth - 1)
+		or not self:isCoordinateInBounds(x + width - 1, y + height - 1, z + depth - 1)
 	then return end
 	local region = Collection.Grid3D(width, height, depth)
 	local regionPos = 1
@@ -144,7 +130,7 @@ end
 function Collection.Grid3D:mutateRegion(x: number, y: number, z: number, width: number, height: number, depth: number, mutator: (x: number, y: number, z: number, value: any) -> (any))
 	-- Bounds check
 	if not self:isCoordinateInBounds(x, y, z) 
-	or not self:isCoordinateInBounds(x + width - 1, y + height - 1, z + depth - 1)
+		or not self:isCoordinateInBounds(x + width - 1, y + height - 1, z + depth - 1)
 	then return end
 	for z = z, z + depth - 1 do
 		for y = y, y + height - 1 do
@@ -157,13 +143,22 @@ function Collection.Grid3D:mutateRegion(x: number, y: number, z: number, width: 
 end
 
 -- Statically-sized 2D grid
-Collection.Grid2D = class("Grid2D"):with(Fill)
+Collection.Grid2D = {}
+Collection.Grid2D.__index = Collection.Grid2D
+Collection.Grid2D.fill = fill
 
-function Collection.Grid2D:init(width: number, height: number)
-	self.width = width
-	self.height = height
-	self.size = width * height
-	self._data = {}
+-- Constructor
+function Collection.Grid2D.new(width: number, height: number)
+    local self = {
+        width = width,
+        height = height,
+        size = width * height,
+        _data = {}
+    }
+    
+    setmetatable(self, Collection.Grid2D)
+
+    return self
 end
 
 function Collection.Grid2D:isCoordinateInBounds(x: number, y: number)
@@ -215,7 +210,7 @@ end
 function Collection.Grid2D:getRegion(x: number, y: number, width: number, height: number)
 	-- Bounds check. Subtract 1 from width/height to get end position
 	if not self:isCoordinateInBounds(x, y)
-	or not self:isCoordinateInBounds(x + width - 1, y + height - 1) 
+		or not self:isCoordinateInBounds(x + width - 1, y + height - 1) 
 	then return nil end
 	local region = Collection.Grid2D(width, height)
 	local regionPos = 1
@@ -241,7 +236,7 @@ end
 function Collection.Grid2D:mutateRegion(x: number, y: number, width: number, height: number, mutator: (x: number, y: number, value: any) -> (any))
 	-- Bounds check
 	if not self:isCoordinateInBounds(x, y)
-	or not self:isCoordinateInBounds(x + width - 1, y + height - 1)
+		or not self:isCoordinateInBounds(x + width - 1, y + height - 1)
 	then return end
 	for y = y, y + height - 1 do
 		local row = x + self.width * (y - 1)
@@ -253,12 +248,21 @@ end
 
 -- Possible optimization, use binary search for random function by storing cumulative weights in each element.
 -- Drawbacks, would have to recalculate cumulative weights each time an element is added or removed.
-Collection.WeightedArray = class("WeightedArray"):with(Iterator)
+Collection.WeightedArray = {}
+Collection.WeightedArray.__index = Collection.WeightedArray
+Collection.WeightedArray.__iter = iterator
 
-function Collection.WeightedArray:init()
-	self._data = {}
-	self._totalWeight = 0
-	self.size = 0
+-- Constructor
+function Collection.WeightedArray.new()
+    local self = {
+        size = 0,
+        _data = {},
+        _totalWeight = 0
+    }
+
+    setmetatable(self, Collection.WeightedArray)
+
+    return self
 end
 
 function Collection.WeightedArray:insert(element: {value: any, weight: number})
@@ -285,11 +289,21 @@ function Collection.WeightedArray:random(): any
 end
 
 -- First in first out container
-Collection.Queue = class("Queue", {
-	_data = {},
-	first = 0,
-	last = -1
-})
+Collection.Queue = {}
+Collection.Queue.__index = Collection.Queue
+
+-- Constructor
+function Collection.Queue.new()
+    local self = {
+        _data = {},
+	    first = 0,
+	    last = -1
+    }
+
+    setmetatable(self, Collection.Queue)
+
+    return self
+end
 
 function Collection.Queue:push(value: any): ()
 	self.last += 1
@@ -330,11 +344,21 @@ function Collection.Queue:__iter()
 	end
 end
 
-Collection.PriorityQueue = class("PriorityQueue", {
-	_heap_items = {},
-	_heap_priority = {},
-	size = 0
-})
+Collection.PriorityQueue = {}
+Collection.PriorityQueue.__index = Collection.PriorityQueue
+
+-- Constructor
+function Collection.PriorityQueue.new()
+    local self = {
+        _heap_items = {},
+	    _heap_priority = {},
+	    size = 0
+    }
+
+    setmetatable(self, Collection.PriorityQueue)
+
+    return self
+end
 
 -- Check if the queue is empty
 function Collection.PriorityQueue:isEmpty(): boolean
@@ -428,10 +452,20 @@ function Collection.PriorityQueue:__iter()
 	end
 end
 
-Collection.Stack = class("Stack", {
-	_data = {},
-	_top = 0
-})
+Collection.Stack = {}
+Collection.Stack.__index = Collection.Stack
+
+-- Constructor
+function Collection.Stack.new()
+    local self = {
+        _data = {},
+        _top = 0
+    }
+
+    setmetatable(self, Collection.Stack)
+
+    return self
+end
 
 function Collection.Stack:push(value: any): ()
 	self._top += 1
@@ -466,10 +500,21 @@ end
 
 -- Sorted array using the merge sort algorithim. Works with numbers and
 -- any class that implements relational metamethods
-Collection.SortedArray = class("SortedArray", {
-	_data = {},
-	size = 0
-}):with(Iterator)
+Collection.SortedArray = {}
+Collection.SortedArray.__index = Collection.SortedArray
+Collection.SortedArray.__iter = iterator
+
+-- Constructor
+function Collection.SortedArray.new()
+    local self = {
+        _data = {},
+        size = 0
+    }
+
+    setmetatable(self, Collection.SortedArray)
+
+    return self
+end
 
 -- Sort array using merge sort algorithim
 function Collection.SortedArray:sort(first: number?, last: number?): ()
@@ -484,7 +529,7 @@ function Collection.SortedArray:sort(first: number?, last: number?): ()
 		local left = first
 		local leftTail = math.floor((first + last) / 2)
 		local right = leftTail + 1
-		local temp = {unpack(self._data)}
+		local temp = {table.unpack(self._data)}
 
 		for i = first, last do
 			if right > last or ((self._data[left] <= self._data[right]) and left <= leftTail) then
