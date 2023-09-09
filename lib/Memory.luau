@@ -1,3 +1,4 @@
+--!native
 local Memory = {}
 
 -- Source: https://stackoverflow.com/a/26367080/18147378

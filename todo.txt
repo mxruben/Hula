@@ -1,0 +1,15 @@
+*make getRegion take in 2 positions instead of a position with dimensions?
+__tostring for grids and other collections
+*have some way to use region() in grids to reference and mutate the grid again
+use lazy iterators for Grid iterators to make them more readable and type-checkable
+
+*figure out what do do when poppable collections are empty when popped
+make PriorityQueue pop and peek return a {value: T, priority: number} to make it consistent with WeightedArray
+*implement peek on all poppable collections (actually implemented front() and back(), more useful)
+*maybe reimplement __iter on poppables
+figure out how to type SortedArray
+
+use table.sort for SortedArray?
+just probably redo PriorityQueue since I just chatgpted it to begin with
+
+add fromData to more data structures where it makes sense

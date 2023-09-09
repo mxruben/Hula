@@ -1,10 +1,16 @@
+--!strict
 local Thread = {}
 
 Thread.Yielder = {}
 Thread.Yielder.__index = Thread.Yielder
 
+export type Yielder = typeof(setmetatable({} :: {
+	_budget: number,
+	_expire: number
+}, Thread.Yielder))
+
 -- Constructor
-function Thread.Yielder.new(budget: number?)
+function Thread.Yielder.new(budget: number?): Yielder
     local self = {
         _budget = budget or 1/60,
         _expire = 0
@@ -31,8 +37,14 @@ end
 Thread.Timer = {}
 Thread.Timer.__index = Thread.Timer
 
+export type Timer = typeof(setmetatable({} :: {
+	_start: number,
+	_elapsed: number,
+	stopped: boolean
+}, Thread.Timer))
+
 -- Constructor
-function Thread.Timer.new()
+function Thread.Timer.new(): Timer
     local self = {
         _start = 0,
         _elapsed = 0,
@@ -44,15 +56,16 @@ function Thread.Timer.new()
     return self
 end
 
-function Thread.Timer:_updateElapsed(): ()
+local function _timerUpdateElapsed(self: Timer): ()
 	if not self.stopped then
-		self._elapsed = self._elapsed + os.clock() - self._start
-		self._start = os.clock()
+		local time = os.clock()
+		self._elapsed = self._elapsed + time - self._start
+		self._start = time
 	end
 end
 
 function Thread.Timer:stop(): ()
-	self:_updateElapsed()
+	_timerUpdateElapsed(self)
 	self.stopped = true
 end
 
@@ -62,7 +75,7 @@ function Thread.Timer:start(): ()
 end
 
 function Thread.Timer:elapsed(): number
-	self:_updateElapsed()
+	_timerUpdateElapsed(self)
 	return self._elapsed
 end
 
