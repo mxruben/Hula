@@ -11,7 +11,7 @@ export type WeightedArray<T> = typeof(setmetatable({} :: {
 	size: number,
 	_data: {WeightedArrayItem<T>},
 	_totalWeight: number
-}, WeightedArrayIterate)) -- All kinds should have the same type, they only have different implementation
+}, WeightedArrayIterate)) -- All kinds should have the same type, they only have different implementation. WeightedArrayIterate is just a placeholder
 
 -- Iterate through _data and calculate cumulative weight for each item.
 local function calculateCumulativeWeights<T>(self: WeightedArray<T>): ()
