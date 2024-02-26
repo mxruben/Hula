@@ -22,7 +22,7 @@ local function new<T>(width: number, height: number, fill: T): Grid2D<T>
         size = width * height,
         _data = {}
     }
-    
+
     common.fill(self, fill)
 
     setmetatable(self, Grid2D)

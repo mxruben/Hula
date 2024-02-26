@@ -9,7 +9,8 @@ make PriorityQueue pop and peek return a {value: T, priority: number} to make it
 *maybe reimplement __iter on poppables
 figure out how to type SortedArray
 
-use table.sort for SortedArray?
+*use table.sort for SortedArray? YES! about 1000x faster sort
 just probably redo PriorityQueue since I just chatgpted it to begin with
 
+make fromData copy data instead of reference
 add fromData to more data structures where it makes sense
