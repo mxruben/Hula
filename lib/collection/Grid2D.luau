@@ -195,7 +195,7 @@ function Grid2D.__tostring<T>(self: Grid2D<T>): string
 	end
 
 	for x, y, v in self:iter() do
-		rows[y] ..= tostring(v).." "
+		rows[self.width + 1 - y] ..= tostring(v).." "
 	end
 
 	return table.concat(rows, "\n")
