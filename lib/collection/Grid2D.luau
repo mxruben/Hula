@@ -158,22 +158,16 @@ function Grid2D.__len<T>(self: Grid2D<T>): number
 	return self.size
 end
 
--- Iterates over grid by value
-function Grid2D.iter<T>(self: Grid2D<T>)
-	local x, y, i = 0, 1, 0
-	return function()
-		i += 1
-		if x < self.width then
-			x += 1
-		else
-			x = 1
-			y += 1
-			if y > self.height then
-				return
-			end
+function Grid2D.iter<T>(self: Grid2D<T>): () -> (number, number, T)
+	return coroutine.wrap(function()
+		for i = 1, self.size do
+			coroutine.yield(
+				i % self.width + 1,
+				math.ceil(i / self.width),
+				self._data[i]
+			)
 		end
-		return x, y, self._data[i]
-	end
+	end)
 end
 
 Grid2D.__iter = Grid2D.iter
@@ -191,6 +185,20 @@ function Grid2D.iterRef<T>(self: Grid2D<T>): () -> (number, number, {value: T})
 			end
 		end
 	end)
+end
+
+-- Crude implementation for debugging
+function Grid2D.__tostring<T>(self: Grid2D<T>): string
+	local rows = {}
+	for i = 1, self.height do
+		rows[i] = ""
+	end
+
+	for x, y, v in self:iter() do
+		rows[y] ..= tostring(v).." "
+	end
+
+	return table.concat(rows, "\n")
 end
 
 return {
