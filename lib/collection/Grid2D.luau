@@ -53,6 +53,15 @@ end
 
 -- Get the value at coordinate
 function Grid2D.at<T>(self: Grid2D<T>, x: number, y: number): T?
+	if not self:isCoordinateInBounds(x, y) then
+		return nil
+	end
+	return self._data[x + (y - 1) * self.width]
+end
+
+-- Unsafe, only use when performance is of upmost importance and when you know
+-- you will stay in bounds
+function Grid2D.atUnchecked<T>(self: Grid2D<T>, x: number, y: number): T?
 	return self._data[x + (y - 1) * self.width]
 end
 
@@ -64,20 +73,21 @@ function Grid2D.set<T>(self: Grid2D<T>, x: number, y: number, value: T): ()
 	self._data[x + (y - 1) * self.width] = value
 end
 
--- Set the value at coordinate without checking if the coordinate is in bounds
+-- Unsafe, only use when performance is of upmost importance and when you know
+-- you will stay in bounds
 function Grid2D.setUnchecked<T>(self: Grid2D<T>, x: number, y: number, value: T): ()
 	self._data[x + (y - 1) * self.width] = value
 end
 
-export type Direction2D = "Top" | "Bottom" | "Left" | "Right"
+type Neighbors2D<T> = {["top"]: T?, ["bottom"]: T?, ["left"]: T?, ["right"]: T?}
 
 -- Returns values of surrounding grid cells
-function Grid2D.neighborsAt<T>(self: Grid2D<T>, x: number, y: number): {[Direction2D]: T}
-	local neighbors = {}
-	neighbors["Top"] = self:at(x, y + 1)
-	neighbors["Bottom"] = self:at(x, y - 1)
-	neighbors["Left"] = self:at(x - 1, y)
-	neighbors["Right"] = self:at(x + 1, y)
+function Grid2D.neighborsAt<T>(self: Grid2D<T>, x: number, y: number): Neighbors2D<T>
+	local neighbors: Neighbors2D<T> = {}
+	neighbors["top"] = self:at(x, y + 1)
+	neighbors["bottom"] = self:at(x, y - 1)
+	neighbors["left"] = self:at(x - 1, y)
+	neighbors["right"] = self:at(x + 1, y)
 	return neighbors
 end
 
@@ -108,6 +118,7 @@ function Grid2D.region<T>(self: Grid2D<T>, x1: number, y1: number, x2: number, y
 			regionPos += 1
 		end
 	end
+
 	return fromData(width, height, data)
 end
 
@@ -175,14 +186,14 @@ Grid2D.__iter = Grid2D.iter
 -- Iterates over grid by reference
 function Grid2D.iterRef<T>(self: Grid2D<T>): () -> (number, number, {value: T})
 	return coroutine.wrap(function()
-		local i = 0
-		for x = 1, self.width do
-			for y = 1, self.height do
-				i += 1
-				local ref = {value = self._data[i]}
-				coroutine.yield(x, y, ref)
-				self._data[i] = ref.value
-			end
+		for i = 1, self.size do
+			local ref = {value = self._data[i]}
+			coroutine.yield(
+				i % self.width + 1,
+				math.ceil(i / self.width),
+				ref
+			)
+			self._data[i] = ref.value
 		end
 	end)
 end

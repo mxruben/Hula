@@ -13,4 +13,5 @@ figure out how to type SortedArray
 just probably redo PriorityQueue since I just chatgpted it to begin with
 
 make fromData copy data instead of reference
+make Grid2D and Grid3D region copy data in different ways depending on if deep or shallow table
 add fromData to more data structures where it makes sense
