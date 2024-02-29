@@ -29,4 +29,13 @@ function Memory.merge(t1, t2)
     return t1
 end
 
+function Memory.isDeep(table: {[unknown]: unknown}): boolean
+    for _, v in table do
+        if type(v) == "table" then
+            return true
+        end
+    end
+    return false
+end
+
 return Memory
