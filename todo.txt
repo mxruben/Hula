@@ -12,6 +12,8 @@ figure out how to type SortedArray
 *use table.sort for SortedArray? YES! about 1000x faster sort
 just probably redo PriorityQueue since I just chatgpted it to begin with
 
+-- Probably don't do the two below. Might want to make everything return references (when the values are tables) and provide functions for copying
 make fromData copy data instead of reference
 make Grid2D and Grid3D region copy data in different ways depending on if deep or shallow table
+
 add fromData to more data structures where it makes sense
