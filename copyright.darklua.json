@@ -1,0 +1,9 @@
+{
+    "rules": [
+        {
+            "rule": "append_text_comment",
+            "text": "This file is part of the Hula library and is licensed under MIT License; see LICENSE for details",
+            "location": "start"
+        }
+    ]
+}
