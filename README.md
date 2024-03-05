@@ -1,4 +1,4 @@
 # Hula
-A Luau utility library with a focus on data structures.
+A strictly-typed Luau utility library with a focus on data structures.
 
 Use with caution, this library is still incomplete, there may be bugs and there *will* be breaking changes.
