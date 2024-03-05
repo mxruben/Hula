@@ -1,0 +1,6 @@
+{
+    "name": "hula",
+    "tree": {
+        "$path": "lib"
+    }
+}
