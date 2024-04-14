@@ -12,3 +12,6 @@ cp default.project.json package/roblox/default.project.json
 darklua process lib package/luau/lib -c copyright.darklua.json
 cp LICENSE package/luau/LICENSE
 cp README.md package/luau/README.md
+# remove roblox-specific yielder
+rm package/luau/lib/Yielder.luau
+sed -i -e 's/Yielder = require("lib\/Yielder"),//g' package/luau/lib/Hula.luau
