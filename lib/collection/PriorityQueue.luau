@@ -19,11 +19,12 @@ PriorityQueue.__index = PriorityQueue
 --- @within PriorityQueue
 --- @ignore
 
-export type PriorityQueue<T> = typeof(setmetatable({} :: {
+type PriorityQueue<T> = typeof(setmetatable({} :: {
 	size: number,
 	_heapItems: {T},
 	_heapPriority: {number}
 }, PriorityQueue))
+export type Type<T> = PriorityQueue<T>
 
 --- @within PriorityQueue
 --- Creates a new priority queue.

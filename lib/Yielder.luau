@@ -20,13 +20,14 @@ Yielder.__index = Yielder
 --- @ignore
 --- Time when the next yield can happen.
 
-export type Yielder = typeof(setmetatable(
+type Yielder = typeof(setmetatable(
 	{} :: {
 		_budget: number,
 		_expire: number,
 	},
 	Yielder
 ))
+export type Type = Yielder
 
 --- @within Yielder
 --- Creates a new yielder object.

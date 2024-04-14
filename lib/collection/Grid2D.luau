@@ -30,12 +30,13 @@ Grid2D.fill = common.fill
 --- @ignore
 --- Array of values contained within the grid.
 
-export type Grid2D<T> = typeof(setmetatable({} :: {
+type Grid2D<T> = typeof(setmetatable({} :: {
 	width: number,
 	height: number,
 	size: number,
 	_data: {T}
 }, Grid2D))
+export type Type<T> = Grid2D<T>
 
 --- @within Grid2D
 --- Creates a new 2D grid filled with a specified value.

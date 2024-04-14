@@ -14,10 +14,11 @@ Stack.__index = Stack
 --- @within Stack
 --- @readonly
 
-export type Stack<T> = typeof(setmetatable({} :: {
+type Stack<T> = typeof(setmetatable({} :: {
 	_data: {T},
 	size: number
 }, Stack))
+export type Type<T> = Stack<T>
 
 --- @within Stack
 --- Creates a new stack.

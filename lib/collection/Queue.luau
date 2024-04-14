@@ -6,11 +6,12 @@
 local Queue = {}
 Queue.__index = Queue
 
-export type Queue<T> = typeof(setmetatable({} :: {
+type Queue<T> = typeof(setmetatable({} :: {
 	_first: number,
 	_last: number,
 	_data: {T}
 }, Queue))
+export type Type<T> = Queue<T>
 
 --- @within Queue
 --- Creates a new queue.

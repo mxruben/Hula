@@ -22,7 +22,7 @@ Timer.__index = Timer
 --- @readonly
 --- Indicates if the timer is counting time.
 
-export type Timer = typeof(setmetatable(
+type Timer = typeof(setmetatable(
 	{} :: {
 		_start: number,
 		_elapsed: number,
@@ -30,6 +30,7 @@ export type Timer = typeof(setmetatable(
 	},
 	Timer
 ))
+export type Type = Timer
 
 --- @within Timer
 --- Creates a new timer object. Note that it starts stopped.

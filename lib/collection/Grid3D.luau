@@ -34,13 +34,14 @@ Grid3D.fill = common.fill
 --- @ignore
 --- Array of values contained within the grid.
 
-export type Grid3D<T> = typeof(setmetatable({} :: {
+type Grid3D<T> = typeof(setmetatable({} :: {
 	width: number,
 	height: number,
 	depth: number,
 	size: number,
 	_data: {T}
 }, Grid3D))
+export type Type<T> = Grid3D<T>
 
 --- @within Grid3D
 --- Creates a new 3D grid filled with a specified value.

@@ -23,10 +23,11 @@ SortedArray.__iter = common.iterator
 --- @within SortedArray
 --- @ignore
 
-export type SortedArray<T> = typeof(setmetatable({} :: {
+type SortedArray<T> = typeof(setmetatable({} :: {
 	size: number,
 	_data: {T}
 }, SortedArray))
+export type Type<T> = SortedArray<T>
 
 --- @within SortedArray
 --- Creates a new sorted array.

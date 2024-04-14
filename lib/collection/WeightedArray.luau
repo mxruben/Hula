@@ -29,12 +29,13 @@ export type WeightedArrayItem<T> = {value: T, weight: number, _cumulativeWeight:
 --- @type WeightedArrayKind "Iterate" | "BinarySearch"
 export type WeightedArrayKind = "Iterate" | "BinarySearch"
 
-export type WeightedArray<T> = typeof(setmetatable({} :: {
+type WeightedArray<T> = typeof(setmetatable({} :: {
 	size: number,
 	_data: {WeightedArrayItem<T>},
 	_totalWeight: number
 }, WeightedArrayIterate)) -- All kinds should have the same type, they only have
 -- different implementation. WeightedArrayIterate is just a placeholder.
+export type Type<T> = WeightedArray<T>
 
 -- Iterate through _data and calculate cumulative weight for each item.
 local function calculateCumulativeWeights<T>(self: WeightedArray<T>): ()
