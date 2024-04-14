@@ -2,10 +2,37 @@
 --!native
 local common = require("lib/collection/internal/common")
 
--- Fixed-size 3D grid
+--- @class Grid3D
+--- Fixed-size 3D grid
 local Grid3D = {}
 Grid3D.__index = Grid3D
+
+--- @within Grid3D
+--- Fills the grid with the specified value.
+--- @method fill
+--- @param value T -- value to fill
 Grid3D.fill = common.fill
+
+--- @prop width number
+--- @within Grid3D
+--- @readonly
+
+--- @prop height number
+--- @within Grid3D
+--- @readonly
+
+--- @prop depth number
+--- @within Grid3D
+--- @readonly
+
+--- @prop size number
+--- @within Grid3D
+--- @readonly
+
+--- @prop _data {T}
+--- @within Grid3D
+--- @ignore
+--- Array of values contained within the grid.
 
 export type Grid3D<T> = typeof(setmetatable({} :: {
 	width: number,
@@ -15,7 +42,9 @@ export type Grid3D<T> = typeof(setmetatable({} :: {
 	_data: {T}
 }, Grid3D))
 
--- Constructor
+--- @within Grid3D
+--- Creates a new 3D grid filled with a specified value.
+--- @param fill -- value to fill
 local function new<T>(width: number, height: number, depth: number, fill: T): Grid3D<T>
     local self = {
         width = width,
@@ -32,6 +61,9 @@ local function new<T>(width: number, height: number, depth: number, fill: T): Gr
     return self
 end
 
+--- @within Grid3D
+--- Creates a new 3D grid from an array of values. Errors if the data does not
+--- fit the dimensions of the grid.
 local function fromData<T>(width: number, height: number, depth: number, data: {T}): Grid3D<T>
 	if #data / width / height ~= depth then
 		error("Data passed does not fit the dimensions.")
@@ -50,16 +82,30 @@ local function fromData<T>(width: number, height: number, depth: number, data: {
 	return self
 end
 
+--- @within Grid3D
+--- Checks if the coordinate is within the bounds of the grid.
 function Grid3D.isCoordinateInBounds<T>(self: Grid3D<T>, x: number, y: number, z: number): boolean
 	return x <= self.width and x > 0 and y <= self.height and y > 0 and z <= self.depth and z > 0
 end
 
--- Get the value at coordinate
+--- @within Grid3D
+--- Returns the value at the coordinate, if in bounds. Otherwise returns nil.
 function Grid3D.at<T>(self: Grid3D<T>, x: number, y: number, z: number): T?
+	if not self:isCoordinateInBounds(x, y, z) then
+		return nil
+	end
 	return self._data[x + self.width * ((y - 1) + self.height * (z - 1))]
 end
 
--- Set the value at coordinate
+--- @within Grid3D
+--- Unsafe version of at, only use when performance is of upmost importance and when you know
+--- you will stay in bounds.
+function Grid3D.atUnchecked<T>(self: Grid3D<T>, x: number, y: number, z: number): T?
+	return self._data[x + self.width * ((y - 1) + self.height * (z - 1))]
+end
+
+--- @within Grid3D
+--- Sets the value at the coordinate. Errors if coordinate is out of bounds.
 function Grid3D.set<T>(self: Grid3D<T>, x: number, y: number, z: number, value: T): ()
 	if not self:isCoordinateInBounds(x, y, z) then
 		error(`Coordinate ({x}, {y}, {z}) is out of bounds.`)
@@ -67,22 +113,28 @@ function Grid3D.set<T>(self: Grid3D<T>, x: number, y: number, z: number, value: 
 	self._data[x + self.width * ((y - 1) + self.height * (z - 1))] = value
 end
 
--- Set the value at coordinate without checking if the coordinate is in bounds
+--- @within Grid3D
+--- Unsafe version of set, only use when performance is of upmost importance and when you know
+--- you will stay in bounds
 function Grid3D.setUnchecked<T>(self: Grid3D<T>, x: number, y: number, z: number, value: T): ()
 	self._data[x + self.width * ((y - 1) + self.height * (z - 1))] = value
 end
 
-export type Direction3D = "Front" | "Back" | "Left" | "Right" | "Top" | "Bottom"
+--- @within Grid3D
+--- @type Neighbors3D<T> {top: T?, bottom: T?, left: T?, right: T?, front: T?, back: T?}
+type Neighbors3D<T> = {top: T?, bottom: T?, left: T?, right: T?, front: T?, back: T?}
+-- moonwave flippin sucks i know
 
--- Returns values of surrounding grid cells
-function Grid3D.neighborsAt<T>(self: Grid3D<T>, x: number, y: number, z: number): {[Direction3D]: T}
+--- @within Grid3D
+--- Returns a map of surrounding grid cells.
+function Grid3D.neighborsAt<T>(self: Grid3D<T>, x: number, y: number, z: number): Neighbors3D<T>
 	local neighbors = {}
-	neighbors["Top"] = self:at(x, y + 1, z)
-	neighbors["Bottom"] = self:at(x, y - 1, z)
-	neighbors["Left"] = self:at(x - 1, y, z)
-	neighbors["Right"] = self:at(x + 1, y, z)
-	neighbors["Front"] = self:at(x, y, z - 1)
-	neighbors["Back"] = self:at(x, y, z + 1)
+	neighbors["top"] = self:at(x, y + 1, z)
+	neighbors["bottom"] = self:at(x, y - 1, z)
+	neighbors["left"] = self:at(x - 1, y, z)
+	neighbors["right"] = self:at(x + 1, y, z)
+	neighbors["front"] = self:at(x, y, z - 1)
+	neighbors["back"] = self:at(x, y, z + 1)
 	return neighbors
 end
 
@@ -92,7 +144,8 @@ local function checkRegionBounds<T>(grid: Grid3D<T>, x1: number, y1: number, z1:
 	end
 end
 
--- Returns a grid of the values in the specified region
+--- @within Grid3D
+--- Returns a new grid of the values in the specified region.
 function Grid3D.region<T>(self: Grid3D<T>, x1: number, y1: number, z1: number, x2: number, y2: number, z2: number): Grid3D<T>
 	checkRegionBounds(self, x1, y1, z1, x2, y2, z2)
 
@@ -105,7 +158,7 @@ function Grid3D.region<T>(self: Grid3D<T>, x1: number, y1: number, z1: number, x
 	local width = xmax - xmin + 1
 	local height = ymax - ymin + 1
 	local depth = zmax - zmin + 1
-	
+
 	local data = {}
 	local regionPos = 1
 
@@ -121,7 +174,9 @@ function Grid3D.region<T>(self: Grid3D<T>, x1: number, y1: number, z1: number, x
 	return fromData(width, height, depth, data)
 end
 
--- Iterates over a region of the grid
+--- @within Grid3D
+--- Creates a lazy evaluated iterator that iterates over a region in the grid by value.
+--- @return () -> (number, number, number, T) -- lazy evaluated iterator that returns x, y, z and value
 function Grid3D.iterRegion<T>(self: Grid3D<T>, x1: number, y1: number, z1: number, x2: number, y2: number, z2: number): () -> (number, number, number, T)
 	return coroutine.wrap(function()
 		checkRegionBounds(self, x1, y1, z1, x2, y2, z2)
@@ -133,7 +188,7 @@ function Grid3D.iterRegion<T>(self: Grid3D<T>, x1: number, y1: number, z1: numbe
 		local zmin = math.min(z1, z2)
 		local zmax = math.max(z1, z2)
 		local width = xmax - xmin + 1
-		
+
 		for z = zmin, zmax do
 			for y = ymin, ymax do
 				local row = xmin + self.width * ((y - 1) + self.height * (z - 1))
@@ -145,7 +200,10 @@ function Grid3D.iterRegion<T>(self: Grid3D<T>, x1: number, y1: number, z1: numbe
 	end)
 end
 
--- Iterates over a region of the grid by reference
+--- @within Grid3D
+--- Creates a lazy evaluated iterator that iterates over a region in the grid by reference.
+--- To access the data within the reference, do ref.value.
+--- @return () -> (number, number, number, {value: T}) -- lazy evaluated iterator that returns x, y, z and a reference
 function Grid3D.iterRegionRef<T>(self: Grid3D<T>, x1: number, y1: number, z1: number, x2: number, y2: number, z2: number): () -> (number, number, number, {value: T})
 	return coroutine.wrap(function()
 		checkRegionBounds(self, x1, y1, z1, x2, y2, z2)
@@ -157,7 +215,7 @@ function Grid3D.iterRegionRef<T>(self: Grid3D<T>, x1: number, y1: number, z1: nu
 		local zmin = math.min(z1, z2)
 		local zmax = math.max(z1, z2)
 		local width = xmax - xmin + 1
-		
+
 		for z = zmin, zmax do
 			for y = ymin, ymax do
 				local row = xmin + self.width * ((y - 1) + self.height * (z - 1))
@@ -172,42 +230,46 @@ function Grid3D.iterRegionRef<T>(self: Grid3D<T>, x1: number, y1: number, z1: nu
 	end)
 end
 
+--- @within Grid3D
+--- Returns size of grid.
 function Grid3D.__len<T>(self: Grid3D<T>): number
 	return self.size
 end
 
--- Iterates over grid by value
-function Grid3D.iter<T>(self: Grid3D<T>): () -> (number?, number?, number?, T?)
-	local x, y, z, i = 0, 1, 1, 0
-	return function()
-		i += 1
-		if x < self.width then
-			x += 1
-		else
-			x = 1
-			if y < self.height then
-				y += 1
-			else
-				y = 1
-				z += 1
-				if z > self.depth then
-					return
+--- @within Grid3D
+--- Creates a lazy evaluated iterator that iterates over the grid by value.
+--- @return () -> (number, number, number, T) -- lazy evaluated iterator that returns x, y, z and value
+function Grid3D.iter<T>(self: Grid3D<T>): () -> (number, number, number, T)
+	return coroutine.wrap(function()
+		local i = 0
+		for z = 1, self.depth do
+			for y = 1, self.height do
+				for x = 1, self.width do
+					i += 1
+					coroutine.yield(x, y, z, self._data[i])
 				end
 			end
 		end
-		return x, y, z, self._data[i]
-	end
+	end)
 end
 
+--- @within Grid3D
+--- Same as Grid3D:iter(). Recommended to use that one instead as it gives you
+--- proper type checking.
+--- @method __iter
+--- @return () -> (number, number, number, T)
 Grid3D.__iter = Grid3D.iter
 
--- Iterates over grid by reference
+--- @within Grid3D
+--- Creates a lazy evaluated iterator that iterates over the grid by reference.
+--- To access the data within the reference, do ref.value.
+--- @return () -> (number, number, number, {value: T}) -- lazy evaluated iterator that returns x, y, z and a reference
 function Grid3D.iterRef<T>(self: Grid3D<T>): () -> (number, number, number, {value: T})
 	return coroutine.wrap(function()
 		local i = 0
-		for x = 1, self.width do
+		for z = 1, self.depth do
 			for y = 1, self.height do
-				for z = 1, self.depth do
+				for x = 1, self.width do
 					i += 1
 					local ref = {value = self._data[i]}
 					coroutine.yield(x, y, z, ref)

@@ -1,17 +1,40 @@
 --!strict
 --!native
+
+--- @class WeightedArray
+--- Array where each item has an associated weight. Items with a higher weight
+--- are more likely to be selected by the random() method.
 local WeightedArrayIterate = {}
 WeightedArrayIterate.__index = WeightedArrayIterate
 local WeightedArrayBinarySearch = {}
 WeightedArrayBinarySearch.__index = WeightedArrayBinarySearch
 
+--- @prop size number
+--- @within WeightedArray
+--- @readonly
+
+--- @prop _data {WeightedArrayItem<T>}
+--- @within WeightedArray
+--- @ignore
+
+--- @prop _totalWeight number
+--- @within WeightedArray
+--- @ignore
+
+--- @within WeightedArray
+--- @type WeightedArrayItem<T> {value: T, weight: number, _cumulativeWeight: number?}
 export type WeightedArrayItem<T> = {value: T, weight: number, _cumulativeWeight: number?}
+
+--- @within WeightedArray
+--- @type WeightedArrayKind "Iterate" | "BinarySearch"
 export type WeightedArrayKind = "Iterate" | "BinarySearch"
+
 export type WeightedArray<T> = typeof(setmetatable({} :: {
 	size: number,
 	_data: {WeightedArrayItem<T>},
 	_totalWeight: number
-}, WeightedArrayIterate)) -- All kinds should have the same type, they only have different implementation. WeightedArrayIterate is just a placeholder
+}, WeightedArrayIterate)) -- All kinds should have the same type, they only have
+-- different implementation. WeightedArrayIterate is just a placeholder.
 
 -- Iterate through _data and calculate cumulative weight for each item.
 local function calculateCumulativeWeights<T>(self: WeightedArray<T>): ()
@@ -22,7 +45,7 @@ local function calculateCumulativeWeights<T>(self: WeightedArray<T>): ()
     end
 end
 
-local function createWeightedArray<T>(data: {WeightedArrayItem<T>}): WeightedArray<T>
+local function createWeightedArrayIterate<T>(data: {WeightedArrayItem<T>}): WeightedArray<T>
     local size, weight = 0, 0
     for _, item in data do
         size += 1
@@ -47,6 +70,8 @@ local function createWeightedArrayBinarySearch<T>(data: {WeightedArrayItem<T>}):
     return self
 end
 
+--- @within WeightedArray
+--- Creates a new weighted array of specified kind.
 local function new<T>(kind: WeightedArrayKind?): WeightedArray<T>
     kind = kind or "Iterate"
     local self = {size = 0, _totalWeight = 0, _data = {}}
@@ -59,10 +84,12 @@ local function new<T>(kind: WeightedArrayKind?): WeightedArray<T>
     end
 end
 
+--- @within WeightedArray
+--- Creates a new weighted array from an existing array.
 local function fromData<T>(data: {WeightedArrayItem<T>}, kind: WeightedArrayKind?): WeightedArray<T>
     kind = kind or "Iterate"
     if kind == "Iterate" then
-        return createWeightedArray(data)
+        return createWeightedArrayIterate(data)
     elseif kind == "BinarySearch" then
         return createWeightedArrayBinarySearch(data)
     else
@@ -70,12 +97,16 @@ local function fromData<T>(data: {WeightedArrayItem<T>}, kind: WeightedArrayKind
     end
 end
 
+--- @within WeightedArray
 local function isEmpty<T>(self: WeightedArray<T>): boolean
     return self.size < 1
 end
 WeightedArrayIterate.isEmpty = isEmpty
 WeightedArrayBinarySearch.isEmpty = isEmpty
 
+--- @within WeightedArray
+--- Returns a random item from the array based on weight. Items with higher weight
+--- are more likely to be returned.
 function WeightedArrayIterate.random<T>(self: WeightedArray<T>): T
     if self:isEmpty() then error("cannot pick random item from empty array") end
 	local target = math.random(0, self._totalWeight - 1)
@@ -113,12 +144,16 @@ function WeightedArrayBinarySearch.random<T>(self: WeightedArray<T>): T
     return self._data[low].value
 end
 
+--- @within WeightedArray
+--- Returns the item at the index, or nil if the index is out of range.
 local function at<T>(self: WeightedArray<T>, index: number): WeightedArrayItem<T>?
     return self._data[index]
 end
 WeightedArrayIterate.at = at
 WeightedArrayBinarySearch.at = at
 
+--- @within WeightedArray
+--- Insert an item into the array.
 function WeightedArrayIterate.insert<T>(self: WeightedArray<T>, item: WeightedArrayItem<T>): ()
 	self._totalWeight += item.weight
 	self.size += 1
@@ -132,6 +167,8 @@ function WeightedArrayBinarySearch.insert<T>(self: WeightedArray<T>, item: Weigh
     calculateCumulativeWeights(self)
 end
 
+--- @within WeightedArray
+--- Remove an item at the specified index from the array.
 function WeightedArrayIterate.remove<T>(self: WeightedArray<T>, index: number): WeightedArrayItem<T>?
 	self._totalWeight -= self._data[index].weight
 	self.size -= 1
@@ -146,12 +183,15 @@ function WeightedArrayBinarySearch.remove<T>(self: WeightedArray<T>, index: numb
     return result
 end
 
+--- @within WeightedArray
 local function __len<T>(self: WeightedArray<T>): number
     return self.size
 end
 WeightedArrayIterate.__len = __len
 WeightedArrayBinarySearch.__len = __len
 
+--- @within WeightedArray
+--- Creates a lazy evaluated iterator.
 local function iter<T>(self: WeightedArray<T>): () -> (number, WeightedArrayItem<T>)
     return coroutine.wrap(function()
         for i = 1, self.size do
@@ -161,6 +201,12 @@ local function iter<T>(self: WeightedArray<T>): () -> (number, WeightedArrayItem
 end
 WeightedArrayIterate.iter = iter
 WeightedArrayBinarySearch.iter = iter
+
+--- @within WeightedArray
+--- Same as WeightedArray:iter(). Recommended to use that one instead as it gives
+--- you proper type checking.
+--- @method __iter
+--- @return () -> (number, WeightedArrayItem<T>)
 WeightedArrayIterate.__iter = WeightedArrayIterate.iter
 WeightedArrayBinarySearch.__iter = WeightedArrayIterate.iter
 

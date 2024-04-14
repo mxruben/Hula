@@ -2,10 +2,33 @@
 --!native
 local common = require("lib/collection/internal/common")
 
--- Fixed-size 2D grid
+--- @class Grid2D
+--- Fixed-size 2D grid.
 local Grid2D = {}
 Grid2D.__index = Grid2D
+
+--- @within Grid2D
+--- Fills the grid with the specified value.
+--- @method fill
+--- @param value T -- value to fill
 Grid2D.fill = common.fill
+
+--- @prop width number
+--- @within Grid2D
+--- @readonly
+
+--- @prop height number
+--- @within Grid2D
+--- @readonly
+
+--- @prop size number
+--- @within Grid2D
+--- @readonly
+
+--- @prop _data {T}
+--- @within Grid2D
+--- @ignore
+--- Array of values contained within the grid.
 
 export type Grid2D<T> = typeof(setmetatable({} :: {
 	width: number,
@@ -14,7 +37,9 @@ export type Grid2D<T> = typeof(setmetatable({} :: {
 	_data: {T}
 }, Grid2D))
 
--- Constructor
+--- @within Grid2D
+--- Creates a new 2D grid filled with a specified value.
+--- @param fill -- value to fill
 local function new<T>(width: number, height: number, fill: T): Grid2D<T>
     local self = {
         width = width,
@@ -30,6 +55,9 @@ local function new<T>(width: number, height: number, fill: T): Grid2D<T>
     return self
 end
 
+--- @within Grid2D
+--- Creates a new 2D grid from an array of values. Errors if the data does not
+--- fit the dimensions of the grid.
 local function fromData<T>(width: number, height: number, data: {T}): Grid2D<T>
 	if #data / width ~= height then
 		error("Data passed does not fit the dimensions.")
@@ -47,11 +75,14 @@ local function fromData<T>(width: number, height: number, data: {T}): Grid2D<T>
 	return self
 end
 
+--- @within Grid2D
+--- Checks if the coordinate is within the bounds of the grid.
 function Grid2D.isCoordinateInBounds<T>(self: Grid2D<T>, x: number, y: number): boolean
 	return x <= self.width and x > 0 and y <= self.height and y > 0
 end
 
--- Get the value at coordinate
+--- @within Grid2D
+--- Returns the value at the coordinate, if in bounds. Otherwise returns nil.
 function Grid2D.at<T>(self: Grid2D<T>, x: number, y: number): T?
 	if not self:isCoordinateInBounds(x, y) then
 		return nil
@@ -59,13 +90,15 @@ function Grid2D.at<T>(self: Grid2D<T>, x: number, y: number): T?
 	return self._data[x + (y - 1) * self.width]
 end
 
--- Unsafe, only use when performance is of upmost importance and when you know
--- you will stay in bounds
+--- @within Grid2D
+--- Unsafe version of at, only use when performance is of upmost importance and when you know
+--- you will stay in bounds.
 function Grid2D.atUnchecked<T>(self: Grid2D<T>, x: number, y: number): T?
 	return self._data[x + (y - 1) * self.width]
 end
 
--- Set the value at coordinate
+--- @within Grid2D
+--- Sets the value at the coordinate. Errors if coordinate is out of bounds.
 function Grid2D.set<T>(self: Grid2D<T>, x: number, y: number, value: T): ()
 	if not self:isCoordinateInBounds(x, y) then
 		error(`Coordinate ({x}, {y}) is out of bounds.`)
@@ -73,15 +106,19 @@ function Grid2D.set<T>(self: Grid2D<T>, x: number, y: number, value: T): ()
 	self._data[x + (y - 1) * self.width] = value
 end
 
--- Unsafe, only use when performance is of upmost importance and when you know
--- you will stay in bounds
+--- @within Grid2D
+--- Unsafe version of set, only use when performance is of upmost importance and when you know
+--- you will stay in bounds
 function Grid2D.setUnchecked<T>(self: Grid2D<T>, x: number, y: number, value: T): ()
 	self._data[x + (y - 1) * self.width] = value
 end
 
-type Neighbors2D<T> = {["top"]: T?, ["bottom"]: T?, ["left"]: T?, ["right"]: T?}
+--- @within Grid2D
+--- @type Neighbors2D<T> {top: T?, bottom: T?, left: T?, right: T?}
+type Neighbors2D<T> = {top: T?, bottom: T?, left: T?, right: T?}
 
--- Returns values of surrounding grid cells
+--- @within Grid2D
+--- Returns a map of surrounding grid cells.
 function Grid2D.neighborsAt<T>(self: Grid2D<T>, x: number, y: number): Neighbors2D<T>
 	local neighbors: Neighbors2D<T> = {}
 	neighbors["top"] = self:at(x, y + 1)
@@ -97,7 +134,8 @@ local function checkRegionBounds<T>(grid: Grid2D<T>, x1: number, y1: number, x2:
 	end
 end
 
--- Returns a grid of the values in the specified region
+--- @within Grid2D
+--- Returns a new grid of the values in the specified region.
 function Grid2D.region<T>(self: Grid2D<T>, x1: number, y1: number, x2: number, y2: number): Grid2D<T>
 	checkRegionBounds(self, x1, y1, x2, y2)
 
@@ -122,7 +160,9 @@ function Grid2D.region<T>(self: Grid2D<T>, x1: number, y1: number, x2: number, y
 	return fromData(width, height, data)
 end
 
--- Iterates over a region of the grid
+--- @within Grid2D
+--- Creates a lazy evaluated iterator that iterates over a region in the grid by value.
+--- @return () -> (number, number, T) -- lazy evaluated iterator that returns x, y and value
 function Grid2D.iterRegion<T>(self: Grid2D<T>, x1: number, y1: number, x2: number, y2: number): () -> (number, number, T)
 	return coroutine.wrap(function()
 		checkRegionBounds(self, x1, y1, x2, y2)
@@ -142,7 +182,10 @@ function Grid2D.iterRegion<T>(self: Grid2D<T>, x1: number, y1: number, x2: numbe
 	end)
 end
 
--- Iterates over a region of the grid by reference
+--- @within Grid2D
+--- Creates a lazy evaluated iterator that iterates over a region in the grid by reference.
+--- To access the data within the reference, do ref.value.
+--- @return () -> (number, number, {value: T}) -- lazy evaluated iterator that returns x, y and a reference
 function Grid2D.iterRegionRef<T>(self: Grid2D<T>, x1: number, y1: number, x2: number, y2: number): () -> (number, number, {value: T})
 	return coroutine.wrap(function()
 		checkRegionBounds(self, x1, y1, x2, y2)
@@ -165,10 +208,15 @@ function Grid2D.iterRegionRef<T>(self: Grid2D<T>, x1: number, y1: number, x2: nu
 	end)
 end
 
+--- @within Grid2D
+--- Returns size of grid.
 function Grid2D.__len<T>(self: Grid2D<T>): number
 	return self.size
 end
 
+--- @within Grid2D
+--- Creates a lazy evaluated iterator that iterates over the grid by value.
+--- @return () -> (number, number, T) -- lazy evaluated iterator that returns x, y and value
 function Grid2D.iter<T>(self: Grid2D<T>): () -> (number, number, T)
 	return coroutine.wrap(function()
 		for i = 1, self.size do
@@ -181,9 +229,17 @@ function Grid2D.iter<T>(self: Grid2D<T>): () -> (number, number, T)
 	end)
 end
 
+--- @within Grid2D
+--- Same as Grid2D:iter(). Recommended to use that one instead as it gives you
+--- proper type checking.
+--- @method __iter
+--- @return () -> (number, number, T)
 Grid2D.__iter = Grid2D.iter
 
--- Iterates over grid by reference
+--- @within Grid2D
+--- Creates a lazy evaluated iterator that iterates over the grid by reference.
+--- To access the data within the reference, do ref.value.
+--- @return () -> (number, number, {value: T}) -- lazy evaluated iterator that returns x, y and a reference
 function Grid2D.iterRef<T>(self: Grid2D<T>): () -> (number, number, {value: T})
 	return coroutine.wrap(function()
 		for i = 1, self.size do
